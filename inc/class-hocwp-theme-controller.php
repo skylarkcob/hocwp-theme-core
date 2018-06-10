@@ -234,9 +234,13 @@ final class HOCWP_Theme_Controller {
 		return HT_Util()->verify_nonce( $this->textdomain, $nonce_name );
 	}
 
-	public function the_date( $format = '', $post = null ) {
+	public function the_date( $format = '', $post = null, $time = true ) {
 		if ( empty( $format ) ) {
-			$format = $this->object->defaults['date_format'] . ' ' . $this->object->defaults['time_format'];
+			$format = $this->object->defaults['date_format'];
+
+			if ( $time ) {
+				$format .= ' ' . $this->object->defaults['time_format'];
+			}
 		}
 
 		echo get_the_time( $format, $post );

@@ -18,6 +18,10 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 	}
 
 	public static function pagination( $args = array() ) {
+		if ( $args instanceof WP_Query ) {
+			$args = array( 'query' => $args );
+		}
+
 		if ( function_exists( 'hocwp_pagination' ) ) {
 			hocwp_pagination( $args );
 
