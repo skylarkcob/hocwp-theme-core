@@ -185,7 +185,21 @@ final class HOCWP_Theme_Query {
 				$query = new WP_Query( $args );
 			}
 
-			if ( ! $query->have_posts() ) {
+			$missing = false;
+
+			if ( $query->have_posts() ) {
+				$ppp = $query->get( 'posts_per_page' );
+
+				if ( ! is_numeric( $ppp ) ) {
+					$ppp = HT_Util()->get_posts_per_page();
+				}
+
+				if ( $query->found_posts < ( $ppp / 2 ) ) {
+					$missing = true;
+				}
+			}
+
+			if ( ! $query->have_posts() || $missing ) {
 				foreach ( $taxs as $tax ) {
 					$ids = wp_get_post_terms( $post_id, $tax, array( 'fields' => 'ids' ) );
 
