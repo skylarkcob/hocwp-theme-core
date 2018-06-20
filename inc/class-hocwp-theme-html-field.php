@@ -724,6 +724,10 @@ final class HOCWP_Theme_HTML_Field {
 		$class      = 'select-media';
 		$media_type = isset( $args['media_type'] ) ? $args['media_type'] : 'image';
 
+		if ( 'image' != $media_type ) {
+			$type = 'button';
+		}
+
 		if ( HOCWP_Theme::is_positive_number( $value ) || ( 'file' == $media_type && isset( $value['url'] ) ) && ! empty( $value['url'] ) ) {
 			$class .= ' has-media';
 		}

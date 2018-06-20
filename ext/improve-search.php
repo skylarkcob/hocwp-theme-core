@@ -88,7 +88,7 @@ final class HOCWP_Ext_Improve_Search extends HOCWP_Theme_Extension {
 				$save = $sql;
 
 				$slug = sanitize_title( $search );
-				$sql .= "post_name = '$search'";
+				$sql .= "post_name LIKE '%$search%'";
 				$post_ids = $wpdb->get_col( $sql );
 
 				if ( ! HT()->array_has_value( $post_ids ) ) {
