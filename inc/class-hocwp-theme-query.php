@@ -250,6 +250,53 @@ final class HOCWP_Theme_Query {
 		return $query;
 	}
 
+	public function get_posts_by_menu_order( $menu_order, $args = array() ) {
+		global $wpdb;
+
+		$join    = isset( $args['join'] ) ? $args['join'] : '';
+		$where   = isset( $args['where'] ) ? $args['where'] : '';
+		$groupby = isset( $args['groupby'] ) ? $args['groupby'] : '';
+		$orderby = isset( $args['orderby'] ) ? $args['orderby'] : '';
+		$limit   = isset( $args['limit'] ) ? $args['limit'] : '';
+
+		$query = "SELECT ID FROM ";
+		$query .= $wpdb->posts;
+
+		if ( ! empty( $join ) ) {
+			$query .= " $join";
+		}
+
+		$query .= " WHERE menu_order = " . $menu_order;
+
+		if ( ! empty( $where ) ) {
+			$query .= " $where";
+		}
+
+		if ( ! empty( $groupby ) ) {
+			$query .= " $groupby";
+		}
+
+		if ( ! empty( $orderby ) ) {
+			$query .= " $orderby";
+		}
+
+		if ( ! empty( $limit ) ) {
+			$query .= " $limit";
+		}
+
+		$columns = $wpdb->get_col( $query );
+
+		$output = isset( $args['output'] ) ? $args['output'] : object;
+
+		if ( HT()->array_has_value( $columns ) ) {
+			if ( object == $output ) {
+				$columns = array_map( 'get_post', $columns );
+			}
+		}
+
+		return $columns;
+	}
+
 	public static function terms( $args = array() ) {
 		$defaults = array(
 			'hide_empty' => false
@@ -305,7 +352,6 @@ final class HOCWP_Theme_Query {
 
 			$count_type ++;
 		}
-		HT()->debug( $sql );
 
 		$post_id = $wpdb->get_var( $sql );
 		$result  = '';

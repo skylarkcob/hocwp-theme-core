@@ -178,10 +178,21 @@ final class HOCWP_Theme_HTML_Field {
 		if ( ! isset( $args['name'] ) && isset( $args['id'] ) ) {
 			$args['name'] = $args['id'];
 		}
+
 		$args['textarea_name'] = $args['name'];
+
 		if ( ! isset( $args['textarea_rows'] ) ) {
 			$args['textarea_rows'] = 10;
 		}
+
+		$label = isset( $args['label'] ) ? $args['label'] : '';
+
+		if ( ! empty( $label ) ) {
+			HT_HTML_Field()->label( array( 'text' => $label, 'for' => $args['id'] ) );
+		}
+
+		unset( $label );
+
 		wp_editor( $args['value'], $args['id'], $args );
 	}
 
