@@ -330,6 +330,14 @@ button[aria-expanded="false"] {
     min-width: 200px;
     display: none;
     z-index: 499;
+    text-align: left;
+    padding: 0;
+    margin: 0;
+}
+
+.sub-menu li a {
+    display: block;
+    padding: 5px 10px;
 }
 
 .menu-item-has-children {
@@ -432,4 +440,15 @@ div.menu li a {
 .google-auto-placed {
     margin-top: 15px;
     margin-bottom: 15px;
+}
+
+.table {
+    display: table;
+}
+
+.table > * {
+    display: table-cell;
+    vertical-align: middle;
+    margin: 0;
+    padding: 10px;
 }
