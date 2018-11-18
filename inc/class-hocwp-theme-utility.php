@@ -284,7 +284,7 @@ class HOCWP_Theme_Utility {
 	}
 
 	public function is_object_valid( $object ) {
-		return ( is_object( $object ) && ! is_wp_error( $object ) ) ? true : false;
+		return ( is_object( $object ) && ! is_wp_error( $object ) );
 	}
 
 	public static function get_file_or_dir_url( $file_or_dir ) {
@@ -358,13 +358,19 @@ class HOCWP_Theme_Utility {
 	}
 
 	public static function get_contents( $url ) {
-		$filesystem = self::filesystem();
+		$result = '';
 
-		if ( $filesystem instanceof WP_Filesystem_Base ) {
-			return $filesystem->get_contents( $url );
+		if ( ! empty( $url ) ) {
+			$filesystem = self::filesystem();
+
+			if ( $filesystem instanceof WP_Filesystem_Direct ) {
+				$result = $filesystem->get_contents( $url );
+			} elseif ( $filesystem instanceof WP_Filesystem_Base ) {
+				$result = $filesystem->get_contents( $url );
+			}
 		}
 
-		return '';
+		return $result;
 	}
 
 	public static function read_all_text( $path ) {
@@ -922,6 +928,10 @@ class HOCWP_Theme_Utility {
 	}
 
 	public static function html_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
+		if ( ! function_exists( 'hocwp_theme_wp_mail_content_type_filter' ) ) {
+			require_once HOCWP_THEME_CORE_PATH . '/ext/smtp.php';
+		}
+
 		add_filter( 'wp_mail_content_type', 'hocwp_theme_wp_mail_content_type_filter', 99 );
 		$sent = wp_mail( $to, $subject, $message, $headers, $attachments );
 		remove_filter( 'wp_mail_content_type', 'hocwp_theme_wp_mail_content_type_filter', 99 );
@@ -938,11 +948,12 @@ class HOCWP_Theme_Utility {
 
 	public static function get_theme_option( $name, $default = '', $base = 'general' ) {
 		global $hocwp_theme;
+
 		$options = $hocwp_theme->options;
 		$options = isset( $options[ $base ] ) ? $options[ $base ] : '';
 		$value   = isset( $options[ $name ] ) ? $options[ $name ] : '';
 
-		if ( empty( $value ) && gettype( $value ) != gettype( $default ) ) {
+		if ( empty( $value ) && gettype( $value ) != gettype( $default ) && ! isset( $options[ $name ] ) ) {
 			$value = $default;
 		}
 
@@ -1264,17 +1275,28 @@ class HOCWP_Theme_Utility {
 
 	public function load_google_javascript_sdk( $args = array() ) {
 		global $hocwp_theme;
+
 		$options = $hocwp_theme->options;
-		$load    = isset( $args['load'] ) ? (bool) $args['load'] : false;
-		$load    = apply_filters( 'hocwp_theme_load_google_sdk_javascript', $load );
+
+		$load = isset( $args['load'] ) ? (bool) $args['load'] : false;
+		$load = apply_filters( 'hocwp_theme_load_google_sdk_javascript', $load );
+
 		if ( ! $load ) {
 			return;
 		}
+
 		$callback = isset( $args['callback'] ) ? $args['callback'] : '';
+
 		if ( empty( $callback ) ) {
 			return;
 		}
-		$locale = get_user_locale();
+
+		$locale = isset( $args['locale'] ) ? $args['locale'] : '';
+
+		if ( empty( $locale ) ) {
+			$locale = get_user_locale();
+		}
+
 		if ( 'vi' == $locale ) {
 			$locale = 'vi_VN';
 		}
@@ -1293,26 +1315,41 @@ class HOCWP_Theme_Utility {
 				js.setAttribute("onload", "this.onload=function(){};<?php echo $callback; ?>()");
 				js.setAttribute("onreadystatechange", "if (this.readyState === 'complete') this.onload()");
 				gjs.parentNode.insertBefore(js, gjs);
-			}(document, 'script', 'google-jssdk'));
+			}(document, "script", "google-jssdk"));
 		</script>
 		<?php
 	}
 
 	public function load_facebook_javascript_sdk( $args = array() ) {
 		$options = $this->get_theme_options( 'social' );
-		$load    = isset( $args['load'] ) ? (bool) $args['load'] : false;
-		$load    = apply_filters( 'hocwp_theme_load_facebook_sdk_javascript', $load );
+
+		$load = isset( $args['load'] ) ? (bool) $args['load'] : false;
+		$load = apply_filters( 'hocwp_theme_load_facebook_sdk_javascript', $load );
+
 		if ( $load ) {
 			$sdk = isset( $options['facebook_sdk_javascript'] ) ? $options['facebook_sdk_javascript'] : '';
+
 			if ( empty( $sdk ) ) {
-				$app_id = isset( $options['facebook_app_id'] ) ? $options['facebook_app_id'] : '';
+				$app_id = isset( $args['app_id'] ) ? $args['app_id'] : '';
+
+				if ( empty( $app_id ) ) {
+					$app_id = isset( $options['facebook_app_id'] ) ? $options['facebook_app_id'] : '';
+				}
+
 				if ( empty( $app_id ) ) {
 					return;
 				}
-				$locale = get_user_locale();
+
+				$locale = isset( $args['locale'] ) ? $args['locale'] : '';
+
+				if ( empty( $locale ) ) {
+					$locale = get_user_locale();
+				}
+
 				if ( 'vi' == $locale ) {
 					$locale = 'vi_VN';
 				}
+
 				$version = isset( $args['version'] ) ? $args['version'] : '2.11';
 				$version = trim( $version, 'v' );
 				?>
@@ -1322,9 +1359,9 @@ class HOCWP_Theme_Utility {
 						if (d.getElementById(id)) return;
 						js = d.createElement(s);
 						js.id = id;
-						js.src = 'https://connect.facebook.net/<?php echo $locale; ?>/sdk.js#xfbml=1&version=v<?php echo $version; ?>&appId=<?php echo $app_id; ?>';
+						js.src = "https://connect.facebook.net/<?php echo $locale; ?>/sdk.js#xfbml=1&version=v<?php echo $version; ?>&appId=<?php echo $app_id; ?>";
 						fjs.parentNode.insertBefore(js, fjs);
-					}(document, 'script', 'facebook-jssdk'));</script>
+					}(document, "script", "facebook-jssdk"));</script>
 				<?php
 			} else {
 				echo $sdk;
@@ -1426,15 +1463,16 @@ class HOCWP_Theme_Utility {
 		$wpdb->query( $key_2 );
 	}
 
-	public function display_ads( $args ) {
+	public function display_ads( $args, $random = false ) {
 		if ( function_exists( 'hocwp_ext_ads_display' ) ) {
-			hocwp_ext_ads_display( $args );
+			hocwp_ext_ads_display( $args, $random );
 		}
 	}
 
 	public function get_theme_options( $tab ) {
 		global $hocwp_theme;
 		$options = isset( $hocwp_theme->options[ $tab ] ) ? $hocwp_theme->options[ $tab ] : '';
+
 		if ( ! is_array( $options ) ) {
 			$options = array();
 		}
@@ -1442,30 +1480,33 @@ class HOCWP_Theme_Utility {
 		return $options;
 	}
 
-	public function recaptcha() {
+	public function recaptcha( $version = 'v2' ) {
 		$options  = $this->get_theme_options( 'social' );
 		$site_key = isset( $options['recaptcha_site_key'] ) ? $options['recaptcha_site_key'] : '';
 
 		if ( empty( $site_key ) ) {
 			return;
 		}
-		?>
-		<script>
-			(function (d, s, id) {
-				var js, gjs = d.getElementsByTagName(s)[0];
-				if (d.getElementById(id)) {
-					return;
-				}
-				js = d.createElement(s);
-				js.id = id;
-				js.async = "async";
-				js.defer = "defer";
-				js.src = "https://www.google.com/recaptcha/api.js?hl=<?php echo get_locale(); ?>";
-				gjs.parentNode.insertBefore(js, gjs);
-			}(document, 'script', 'recaptcha-jssdk'));
-		</script>
-		<div class="g-recaptcha" data-sitekey="<?php echo $site_key; ?>" style="margin-bottom: 10px;"></div>
-		<?php
+
+		if ( 'v2' == $version ) {
+			?>
+			<script>
+				(function (d, s, id) {
+					var js, gjs = d.getElementsByTagName(s)[0];
+					if (d.getElementById(id)) {
+						return;
+					}
+					js = d.createElement(s);
+					js.id = id;
+					js.async = "async";
+					js.defer = "defer";
+					js.src = "https://www.google.com/recaptcha/api.js?hl=<?php echo get_locale(); ?>";
+					gjs.parentNode.insertBefore(js, gjs);
+				}(document, "script", "recaptcha-jssdk"));
+			</script>
+			<div class="g-recaptcha" data-sitekey="<?php echo $site_key; ?>" style="margin-bottom: 10px;"></div>
+			<?php
+		}
 	}
 
 	public function recaptcha_valid( $response = null ) {
@@ -1484,15 +1525,20 @@ class HOCWP_Theme_Utility {
 
 		$params = array(
 			'secret'   => $secret_key,
-			'response' => $response
+			'response' => $response,
+			'remoteip' => HT()->get_IP()
 		);
 
-		$url      = add_query_arg( $params, $url );
-		$response = HT_Util()->get_contents( $url );
+		$url = add_query_arg( $params, $url );
+
+		$response = wp_remote_post( $url );
+
+		$response = wp_remote_retrieve_body( $response );
+
 		$response = json_decode( $response );
 
 		if ( $this->is_object_valid( $response ) ) {
-			if ( $response->success ) {
+			if ( $response->success || 1 == $response->success ) {
 				return true;
 			}
 		}

@@ -198,6 +198,7 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 					}
 
 					$url = get_pagenum_link( 1 );
+					$url = apply_filters( 'hocwp_theme_pagination_first_item_url', $url, $args );
 					echo '<li class="page-item"><a class="first page-numbers page-link" href="' . esc_url( $url ) . '">' . $first . '</a></li>';
 				}
 			}
@@ -509,17 +510,20 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 
 	public function facebook_share_button( $args = array() ) {
 		$post_id = isset( $args['post_id'] ) ? $args['post_id'] : get_the_ID();
-		$url     = isset( $args['url'] ) ? $args['url'] : '';
+
+		$url = isset( $args['url'] ) ? $args['url'] : '';
 
 		if ( empty( $url ) ) {
 			$url = get_permalink( $post_id );
 		}
 
-		$layout     = isset( $args['layout'] ) ? $args['layout'] : 'button_count';
-		$action     = isset( $args['action'] ) ? $args['action'] : 'like';
+		$layout = isset( $args['layout'] ) ? $args['layout'] : 'button_count';
+		$action = isset( $args['action'] ) ? $args['action'] : 'like';
+
 		$show_faces = isset( $args['show_faces'] ) ? $args['show_faces'] : false;
 		$show_faces = HT()->bool_to_string( $show_faces );
-		$share      = isset( $args['share'] ) ? $args['share'] : true;
+
+		$share = isset( $args['share'] ) ? $args['share'] : true;
 
 		$recommend = isset( $args['recommend'] ) ? $args['recommend'] : false;
 
@@ -544,7 +548,7 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 
 		$ajax_url = add_query_arg( $params, $ajax_url );
 		?>
-		<div class="fb-like-buttons like-share">
+		<div class="fb-like-buttons like-share clearfix">
 			<div class="item">
 				<div class="fb-like" data-href="<?php echo $url; ?>" data-layout="<?php echo $layout; ?>"
 				     data-action="<?php echo $action; ?>" data-show-faces="<?php echo $show_faces; ?>"
@@ -558,6 +562,7 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 				}
 				?>
 			</div>
+			<?php do_action( 'hocwp_theme_facebook_share_button', $args ); ?>
 		</div>
 		<script>
 			function updateFacebookData(event) {
@@ -663,6 +668,79 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 			}
 		</script>
 		<?php
+	}
+
+	public function content_404() {
+		$html = apply_filters( 'hocwp_theme_404_content', '' );
+
+		if ( ! empty( $html ) ) {
+			echo $html;
+		} else {
+			$page = HT_Util()->get_theme_option( '404', '', 'reading' );
+			$page = get_post( $page );
+
+			if ( $page instanceof WP_Post && 'page' == $page->post_type ) {
+				?>
+				<header class="page-header">
+					<h2 class="page-title"><?php echo get_the_title( $page ); ?></h2>
+				</header>
+				<!-- .page-header -->
+
+				<div class="page-content entry-content">
+					<?php
+					$content = apply_filters( 'the_content', $page->post_content );
+					echo $content;
+					?>
+				</div>
+				<?php
+			} else {
+				?>
+				<header class="page-header">
+					<h2 class="page-title"><?php esc_html_e( 'Oops! That page can&rsquo;t be found.', 'hocwp-theme' ); ?></h2>
+				</header>
+				<!-- .page-header -->
+
+				<div class="page-content entry-content">
+					<p><?php esc_html_e( 'It looks like nothing was found at this location. Maybe try one of the links below or a search?', 'hocwp-theme' ); ?></p>
+
+					<?php
+					get_search_form();
+
+					the_widget( 'WP_Widget_Recent_Posts' );
+					?>
+
+					<div class="widget widget_categories">
+						<h2 class="widget-title"><?php esc_html_e( 'Most Used Categories', 'hocwp-theme' ); ?></h2>
+						<ul>
+							<?php
+							wp_list_categories( array(
+								'orderby'    => 'count',
+								'order'      => 'DESC',
+								'show_count' => 1,
+								'title_li'   => '',
+								'number'     => 10,
+							) );
+							?>
+						</ul>
+					</div>
+					<!-- .widget -->
+
+					<?php
+
+					/* translators: %1$s: smiley */
+					$archive_content = '<p>' . sprintf( esc_html__( 'Try looking in the monthly archives. %1$s', 'hocwp-theme' ), convert_smilies( ':)' ) ) . '</p>';
+					the_widget( 'WP_Widget_Archives', 'dropdown=1', "after_title=</h2>$archive_content" );
+
+					the_widget( 'WP_Widget_Tag_Cloud' );
+					?>
+
+				</div>
+				<!-- .page-content -->
+				<?php
+			}
+		}
+
+		do_action( 'hocwp_theme_content_404' );
 	}
 }
 

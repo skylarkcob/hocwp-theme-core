@@ -6,6 +6,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 function hocwp_theme_after_setup_theme() {
 	add_theme_support( 'custom-header' );
 	add_theme_support( 'custom-logo' );
+
+	/*
+	 * Back compat theme supports WooCommerce.
+	 */
+	if ( function_exists( 'wc' ) && class_exists( 'WooCommerce' ) ) {
+		add_theme_support( 'woocommerce' );
+	}
 }
 
 add_action( 'after_setup_theme', 'hocwp_theme_after_setup_theme' );
@@ -136,7 +143,7 @@ add_filter( 'wp_setup_nav_menu_item', 'hocwp_theme_wp_setup_nav_menu_item_filter
  */
 function hocwp_theme_update_option_url( $old_url, $new_url ) {
 	if ( 'localhost' != $new_url && ! HT()->is_IP( $new_url ) ) {
-		$option = get_option( 'hocwp_theme' );
+		$option = get_option( HOCWP_Theme()->get_prefix() );
 
 		if ( HT()->array_has_value( $option ) ) {
 			$option = json_encode( $option );
@@ -146,7 +153,7 @@ function hocwp_theme_update_option_url( $old_url, $new_url ) {
 				$option = json_decode( $option, true );
 
 				if ( HT()->array_has_value( $option ) ) {
-					update_option( 'hocwp_theme', $option );
+					update_option( HOCWP_Theme()->get_prefix(), $option );
 				}
 			}
 		}
@@ -195,6 +202,33 @@ add_filter( 'wp_calculate_image_srcset', 'hocwp_theme_wp_calculate_image_srcset'
 
 function hocwp_theme_check_environment() {
 	global $pagenow;
+
+	$invalid_exts = get_option( 'hocwp_theme_invalid_extensions' );
+
+	if ( HT()->array_has_value( $invalid_exts ) ) {
+		if ( is_admin() ) {
+			add_action( 'admin_notices', function () {
+				$invalid_exts = get_option( 'hocwp_theme_invalid_extensions' );
+
+				if ( HT()->array_has_value( $invalid_exts ) ) {
+					foreach ( $invalid_exts as $data ) {
+						?>
+						<div class="error notice is-dismissible">
+							<p>
+								<?php printf( __( '<strong>%s:</strong> This extension requires theme core version at least %s.', 'hocwp-theme' ), $data['name'], $data['requires_core'] ); ?>
+							</p>
+						</div>
+						<?php
+					}
+				}
+			} );
+		} else {
+			if ( 'wp-login.php' != $pagenow ) {
+				wp_die( __( '<strong>Error:</strong> One or more extensions are incompatible with the current theme core version.', 'hocwp-theme' ), __( 'Theme core version doesn\'t meet requirements', 'hocwp-theme' ) );
+				exit;
+			}
+		}
+	}
 
 	if ( ! is_admin() && 'wp-login.php' != $pagenow ) {
 		$plugins = HT_Requirement()->get_required_plugins();

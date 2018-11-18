@@ -167,6 +167,15 @@ p > ins > br {
     vertical-align: top;
 }
 
+.widget .dsq-widget-user,
+.widget .dsq-widget-comment p {
+    font-size: 14px;
+}
+
+.widget img.dsq-widget-avatar {
+    margin-right: 4px;
+}
+
 .fixed {
     position: fixed;
     z-index: 9999;
@@ -327,6 +336,10 @@ button.back-to-top:hover {
 
 button[aria-expanded="false"] {
     display: none;
+}
+
+.fa.fab {
+    font-family: 'Font Awesome 5 Brands';
 }
 
 .hocwp-theme > .site, .container {
