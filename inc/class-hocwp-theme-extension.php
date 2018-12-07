@@ -29,13 +29,15 @@ class HOCWP_Theme_Extension {
 			$file = __FILE__;
 		}
 
-		$this->file    = $file;
+		$this->file = $file;
+
 		$this->basedir = dirname( $this->file );
 
 		$this->get_headers();
 
 		if ( isset( $this->data['Name'] ) && ! empty( $this->data['Name'] ) ) {
-			$this->name        = $this->data['Name'];
+			$this->name = $this->data['Name'];
+
 			$this->description = $this->data['Description'];
 		} else {
 			_doing_it_wrong( __CLASS__, __( 'Please declare extension with Name and Description in header.', 'hocwp-theme' ), '6.4.2' );
