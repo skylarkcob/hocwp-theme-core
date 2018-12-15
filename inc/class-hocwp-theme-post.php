@@ -68,4 +68,51 @@ class HOCWP_Theme_Post {
 	public function the_date( $format = '' ) {
 		echo get_the_date( $format );
 	}
+
+	public function get_the_excerpt( $length = null, $more = null ) {
+		if ( ! is_numeric( $length ) ) {
+			$length = HT_Options()->get_tab( 'excerpt_length', '', 'reading' );
+
+			if ( ! is_numeric( $length ) ) {
+				$length = 55;
+			}
+
+			$length = apply_filters( 'excerpt_length', $length );
+		}
+
+		$length = intval( $length );
+
+		$excerpt = $this->post->post_excerpt;
+
+		if ( empty( $excerpt ) ) {
+			global $post;
+			$tmp = $post;
+
+			$post = $this->post;
+			setup_postdata( $post );
+
+			$excerpt = get_the_content( '' );
+
+			$excerpt = strip_shortcodes( $excerpt );
+
+			$excerpt = apply_filters( 'the_content', $excerpt );
+			$excerpt = str_replace( ']]>', ']]&gt;', $excerpt );
+
+			wp_reset_postdata();
+
+			$post = $tmp;
+		}
+
+		if ( null == $more ) {
+			$more = '&hellip;';
+		}
+
+		$excerpt = wp_trim_words( $excerpt, $length, $more );
+
+		return $excerpt;
+	}
+
+	public function the_excerpt( $length = null, $more = null ) {
+		echo apply_filters( 'the_excerpt', $this->get_the_excerpt( $length, $more ) );
+	}
 }

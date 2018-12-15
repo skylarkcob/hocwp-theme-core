@@ -165,6 +165,10 @@ class HOCWP_Theme_Extension {
 	public function is_active() {
 		return $this->is_active;
 	}
+
+	public function get_option( $name, $default = '' ) {
+		return HT_Options()->get_tab( $name, $default, $this->option_name );
+	}
 }
 
 class HOCWP_Theme_Extension_Controller {
