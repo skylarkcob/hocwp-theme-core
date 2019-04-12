@@ -1,4 +1,7 @@
 == Changelog ==
+= 6.6.5 =
+* Fix custom HTML logo.
+
 = 6.6.4 =
 * Add more theme support features.
 * Add custom-ajax.php file.
