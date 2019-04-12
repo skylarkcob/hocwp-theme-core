@@ -1,6 +1,9 @@
 == Changelog ==
 = 6.6.5 =
 * Fix custom HTML logo.
+* Show admin notice for deprecated extension.
+* Load hocwp-theme-admin script to fix hidden sub menu.
+* Add attribute data-id for post tag.
 
 = 6.6.4 =
 * Add more theme support features.
