@@ -226,35 +226,56 @@ final class HOCWP_Theme_HTML_Field {
 	}
 
 	public static function option( $selected, $current, $args, $echo = false ) {
-		$opt = new HOCWP_Theme_HTML_Tag( 'option' );
-		if ( is_array( $args ) ) {
-			$text = isset( $args['text'] ) ? $args['text'] : $current;
-			$ov   = isset( $args['value'] ) ? $args['value'] : $current;
-			unset( $args['text'] );
-			$args['value'] = $ov;
-			$opt->set_attributes( $args );
-		} else {
-			if ( empty( $args ) ) {
-				$text = $current;
-			} else {
-				$text = $args;
+		if ( ( null == $current || empty( $current ) ) && ( null == $args || empty( $args ) ) ) {
+			if ( null == $current ) {
+				$current = '';
 			}
-			$opt->add_attribute( 'value', $current );
-		}
-		$opt->set_text( $text );
-		if ( is_array( $selected ) ) {
-			if ( in_array( $current, $selected ) ) {
-				$selected = $current;
-			} else {
+
+			if ( null == $selected ) {
 				$selected = '';
+			} else {
+				$selected = selected( $selected, $current, false );
 			}
-		}
-		$selected = selected( $selected, $current, false );
-		if ( ! empty( $selected ) ) {
-			$opt->add_attribute( $selected );
+
+			$opt = '<option value="' . $current . '"' . $selected . '></option>';
+		} else {
+			$opt = new HOCWP_Theme_HTML_Tag( 'option' );
+
+			if ( is_array( $args ) ) {
+				$text = isset( $args['text'] ) ? $args['text'] : $current;
+				$ov   = isset( $args['value'] ) ? $args['value'] : $current;
+				unset( $args['text'] );
+				$args['value'] = $ov;
+				$opt->set_attributes( $args );
+			} else {
+				if ( empty( $args ) ) {
+					$text = $current;
+				} else {
+					$text = $args;
+				}
+
+				$opt->add_attribute( 'value', $current );
+			}
+
+			$opt->set_text( $text );
+
+			if ( is_array( $selected ) ) {
+				if ( in_array( $current, $selected ) ) {
+					$selected = $current;
+				} else {
+					$selected = '';
+				}
+			}
+
+			$selected = selected( $selected, $current, false );
+
+			if ( ! empty( $selected ) ) {
+				$opt->add_attribute( $selected );
+			}
+
+			$opt = $opt->build();
 		}
 
-		$opt = $opt->build();
 		if ( $echo ) {
 			echo $opt;
 		}
@@ -277,12 +298,14 @@ final class HOCWP_Theme_HTML_Field {
 					$option_all = str_replace( '--', '', $option_all );
 					$option_all = trim( $option_all );
 					$lasts      = substr( $option_all, 0, - 3 );
+
 					if ( '...' != $lasts && '&hellip;' != $lasts ) {
 						$option_all .= '&hellip;';
 					}
+
 					$args['data-placeholder'] = $option_all;
 
-					$oh .= '<option value=""></option>';
+					$oh .= self::option( null, null, null );
 				} else {
 					$oh .= self::option( $value, '', $option_all );
 				}
@@ -721,7 +744,7 @@ final class HOCWP_Theme_HTML_Field {
 					$item .= $ul->build();
 				}
 
-				$item .= '</li> ';
+				$item .= '</li>';
 				$lists[] = $item;
 			}
 
@@ -735,7 +758,7 @@ final class HOCWP_Theme_HTML_Field {
 					continue;
 				}
 
-				$lists[] = '<li class="ui-state-default" data-taxonomy="' . $obj->taxonomy . '" data-id="' . $obj->term_id . '"> ' . $obj->name . ' (' . $tax->labels->singular_name . ')</li> ';
+				$lists[] = '<li class="ui-state-default" data-taxonomy="' . $obj->taxonomy . '" data-id="' . $obj->term_id . '">' . $obj->name . ' (' . $tax->labels->singular_name . ')</li>';
 			}
 		}
 
@@ -855,7 +878,7 @@ final class HOCWP_Theme_HTML_Field {
 					$item .= $ul->build();
 				}
 
-				$item .= '</li> ';
+				$item .= '</li>';
 				$lists[] = $item;
 			}
 
@@ -869,7 +892,7 @@ final class HOCWP_Theme_HTML_Field {
 					continue;
 				}
 
-				$lists[] = '<li class="ui-state-default" data-post-type="' . $obj->post_type . '" data-id="' . $obj->ID . '"> ' . $obj->post_title . ' (' . $type->labels->singular_name . ')</li> ';
+				$lists[] = '<li class="ui-state-default" data-post-type="' . $obj->post_type . '" data-id="' . $obj->ID . '">' . $obj->post_title . ' (' . $type->labels->singular_name . ')</li>';
 			}
 		}
 

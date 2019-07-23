@@ -5,7 +5,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 function hocwp_theme_article_before( $args ) {
 	$container = isset( $args['container'] ) ? $args['container'] : 'article';
-	echo '<' . $container . ' class="' . join( ' ', get_post_class() ) . '" data-id="' . get_the_ID() . '">';
+
+	$class = isset( $args['class'] ) ? $args['class'] : '';
+	$class .= ' ' . join( ' ', get_post_class() );
+	$class = trim( $class );
+
+	echo '<' . $container . ' class="' . $class . '" data-id="' . get_the_ID() . '">';
 }
 
 add_action( 'hocwp_theme_article_before', 'hocwp_theme_article_before' );
@@ -18,6 +23,12 @@ function hocwp_theme_article_after( $args ) {
 add_action( 'hocwp_theme_article_after', 'hocwp_theme_article_after' );
 
 function hocwp_theme_comments_open() {
+	global $post;
+
+	if ( ! ( $post instanceof WP_Post ) ) {
+		return false;
+	}
+
 	return ( ! post_password_required() && ( comments_open() || get_comments_number() ) );
 }
 

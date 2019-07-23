@@ -7,6 +7,9 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 	public static $instance;
 
 	protected function __construct() {
+		if ( ! is_admin() ) {
+			add_filter( 'nav_menu_link_attributes', array( $this, 'nav_menu_link_attributes_filter' ), 10, 4 );
+		}
 	}
 
 	public static function get_instance() {
@@ -15,6 +18,17 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 		}
 
 		return self::$instance;
+	}
+
+	public function nav_menu_link_attributes_filter( $atts, $item, $args, $depth ) {
+		if ( is_object( $args ) ) {
+			$atts['data-object']    = $item->object;
+			$atts['data-object-id'] = $item->object_id;
+			$atts['data-type']      = $item->type;
+			$atts['data-depth']     = esc_attr( $depth );
+		}
+
+		return $atts;
 	}
 
 	public static function pagination( $args = array() ) {
@@ -270,38 +284,38 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 		if ( is_category() ) {
 			$title = single_cat_title( '', false );
 
-			if ( $prefix ) {
+			if ( $prefix && ! empty( $title ) ) {
 				$title = sprintf( __( 'Category: %s', 'hocwp-theme' ), $title );
 			}
 		} elseif ( is_tag() ) {
 			$title = single_tag_title( '', false );
 
-			if ( $prefix ) {
+			if ( $prefix && ! empty( $title ) ) {
 				$title = sprintf( __( 'Tag: %s', 'hocwp-theme' ), $title );
 			}
 		} elseif ( is_author() ) {
 			$title = '<span class="vcard">' . get_the_author() . '</span>';
 
-			if ( $prefix ) {
+			if ( $prefix && ! empty( $title ) ) {
 				$title = sprintf( __( 'Author: %s', 'hocwp-theme' ), $title );
 			}
 		} elseif ( is_date() ) {
 			if ( is_year() ) {
 				$title = get_the_date( _x( 'Y', 'yearly archives date format', 'hocwp-theme' ) );
 
-				if ( $prefix ) {
+				if ( $prefix && ! empty( $title ) ) {
 					$title = sprintf( _x( 'Year: %s', 'yearly archives', 'hocwp-theme' ), $title );
 				}
 			} elseif ( is_month() ) {
 				$title = get_the_date( _x( 'F Y', 'monthly archives date format', 'hocwp-theme' ) );
 
-				if ( $prefix ) {
+				if ( $prefix && ! empty( $title ) ) {
 					$title = sprintf( _x( 'Month: %s', 'monthly archives', 'hocwp-theme' ), $title );
 				}
 			} elseif ( is_day() ) {
 				$title = get_the_date( _x( 'F j, Y', 'daily archives date format', 'hocwp-theme' ) );
 
-				if ( $prefix ) {
+				if ( $prefix && ! empty( $title ) ) {
 					$title = sprintf( _x( 'Day: %s', 'daily archives', 'hocwp-theme' ), $title );
 				}
 			}
@@ -325,16 +339,20 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 			} elseif ( is_tax( 'post_format', 'post-format-chat' ) ) {
 				$title = _x( 'Chats', 'post format archive title', 'hocwp-theme' );
 			}
+
+			if ( $prefix && ! empty( $title ) ) {
+				$title = sprintf( _x( 'Post Format: %s', 'post format archives', 'hocwp-theme' ), $title );
+			}
 		} elseif ( is_post_type_archive() ) {
 			$title = post_type_archive_title( '', false );
 
-			if ( $prefix ) {
-				$title = sprintf( __( 'Archives: %s', 'hocwp-theme' ), post_type_archive_title( '', false ) );
+			if ( $prefix && ! empty( $title ) ) {
+				$title = sprintf( __( 'Archives: %s', 'hocwp-theme' ), $title );
 			}
 		} elseif ( is_tax() ) {
 			$title = single_term_title( '', false );
 
-			if ( $prefix ) {
+			if ( $prefix && ! empty( $title ) ) {
 				$tax = get_taxonomy( get_queried_object()->taxonomy );
 
 				$title = sprintf( '%1$s: %2$s', $tax->labels->singular_name, $title );
@@ -342,10 +360,11 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 		} elseif ( is_search() ) {
 			$title = get_search_query();
 
-			if ( $prefix ) {
+			if ( $prefix && ! empty( $title ) ) {
 				$title = sprintf( __( 'Search results for: %s', 'hocwp-theme' ), $title );
 			}
 		} elseif ( ! ( is_home() && is_front_page() ) && ! is_front_page() ) {
+			// Blog archive page
 			$title = __( 'Recent posts', 'hocwp-theme' );
 		} else {
 			$title = __( 'Archives', 'hocwp-theme' );
@@ -764,3 +783,5 @@ final class HOCWP_Theme_Frontend extends HOCWP_Theme_Utility {
 function HT_Frontend() {
 	return HOCWP_Theme_Frontend::get_instance();
 }
+
+HT_Frontend();
