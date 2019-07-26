@@ -1,4 +1,7 @@
 == Changelog ==
+= 6.6.6 =
+* Add theme support wp_body_open action hook.
+
 = 6.6.5 =
 * Fix custom HTML logo.
 * Show admin notice for deprecated extension.
