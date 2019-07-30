@@ -331,7 +331,9 @@ function hocwp_theme_dynamic_sidebar_params_filter( $params ) {
 
 		if ( $section ) {
 			if ( isset( $args['before_widget'] ) && '<li id="%1$s" class="widget %2$s">' !== $args['before_widget'] ) {
-				$section = false;
+				if ( false !== strpos( $args['before_widget'], '%' ) && false !== strpos( $args['before_widget'], '$' ) ) {
+					$section = false;
+				}
 			}
 		}
 
